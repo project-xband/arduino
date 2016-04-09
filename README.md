@@ -17,5 +17,5 @@ try listening for packet:
 
   Steps:
 ==========================
-[ ] Make listening fast
-[ ] Push onto message queue
+- [ ] Make listening fast
+- [ ] Push onto message queue
