@@ -1,10 +1,10 @@
 optionally headless mesh node network
 ==========================
 
- <0x01> alpha
- <0x02> beta
- <0x03> charlie
- <0x04> delta
+- <0x01> alpha
+- <0x02> beta
+- <0x03> charlie
+- <0x04> delta
 
  Loop:
 ==========================
