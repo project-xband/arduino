@@ -1,4 +1,4 @@
-Headless mesh node network
+optionally headless mesh node network
 ==========================
 
  <0x01> alpha
@@ -6,8 +6,8 @@ Headless mesh node network
  <0x03> charlie
  <0x04> delta
 
+ Loop:
 ==========================
-Loop:
 listen on serial:
 	take in message
 try sending packet:
@@ -15,7 +15,7 @@ try sending packet:
 try listening for packet:
 	print to serial
 
+  Steps:
 ==========================
-Steps:
 [ ] Make listening fast
 [ ] Push onto message queue
