@@ -17,15 +17,14 @@
 // In this small artifical network of 4 nodes,
 #define CLIENT1_ADDRESS 1
 #define CLIENT2_ADDRESS 2
-#define CLIENT3_ADDRESS 3
+#define SERVER3_ADDRESS 3
 #define CLIENT4_ADDRESS 4
-#define INPUT_SIZE      30
 
 // Singleton instance of the radio driver
 RH_RF22 driver;
 
 // Class to manage message delivery and receipt, using the driver declared above
-RHMesh manager(driver, CLIENT1_ADDRESS);
+RHMesh manager(driver, SERVER3_ADDRESS);
 
 void setup() 
 {
@@ -34,30 +33,18 @@ void setup()
     Serial.println("init failed");
 }
 
-String  serial_read;
-int     address = 2;
 // Dont put this on the stack:
 uint8_t buf[RH_MESH_MAX_MESSAGE_LEN];
 
+
 void loop()
 { 
-  uint8_t len = sizeof(buf);
-  uint8_t from;
-  Serial.print("waiting...");
-  while(Serial.available()) {
-    address = Serial.parseInt();
-    Serial.readBytes(data,30);
-    Serial.println();
-    Serial.println("[read]");
-  }
-    
+
   // Send a message to a rf22_mesh_server
   // A route to the destination will be automatically discovered.
-  if (manager.sendtoWait(data, sizeof(data), address) == RH_ROUTER_ERROR_NONE)
-  {
-      Serial.println("[sent]");
-  }
-
+  
+  uint8_t len = sizeof(buf);
+  uint8_t from;
   if (manager.recvfromAck(buf, &len, &from))
   {
     Serial.print("[0x");

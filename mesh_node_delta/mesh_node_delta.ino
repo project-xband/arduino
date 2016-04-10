@@ -17,7 +17,7 @@
 // In this small artifical network of 4 nodes,
 #define CLIENT1_ADDRESS 1
 #define CLIENT2_ADDRESS 2
-#define CLIENT3_ADDRESS 3
+#define SERVER3_ADDRESS 3
 #define CLIENT4_ADDRESS 4
 #define INPUT_SIZE      30
 
@@ -44,28 +44,21 @@ void loop()
 { 
   uint8_t len = sizeof(buf);
   uint8_t from;
-  Serial.print("waiting...");
-  Serial.println(data);
+  //Serial.print("waiting...");
+  //Serial.println(data);
   while(Serial.available()) {
-    address = Serial.parseInt();
+    //address = Serial.parseInt();
     Serial.readBytes(data,30);
     Serial.println();
     Serial.println("[read]");
-  }
     
-  // Send a message to a rf22_mesh_server
-  // A route to the destination will be automatically discovered.
-  if (manager.sendtoWait(data, sizeof(data), address) == RH_ROUTER_ERROR_NONE)
-  {
-      Serial.println("[sent]");
-  }
-
-  if (manager.recvfromAck(buf, &len, &from))
-  {
-    Serial.print("[0x");
-    Serial.print(from, HEX);
-    Serial.print("]: ");
-    Serial.println((char*)buf);
+    // Send a message to a rf22_mesh_server
+    // A route to the destination will be automatically discovered.
+    if (manager.sendtoWait(data, sizeof(data), SERVER3_ADDRESS) == RH_ROUTER_ERROR_NONE)
+    {
+        Serial.println("[sent]");
+    }
+    
   }
   
 }
