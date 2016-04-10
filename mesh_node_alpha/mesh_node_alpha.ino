@@ -20,6 +20,9 @@
 #define SERVER3_ADDRESS 3
 #define CLIENT4_ADDRESS 4
 
+// packet size limit from serial
+#define INPUT_SIZE      30
+
 // Singleton instance of the radio driver
 RH_RF22 driver;
 
@@ -33,16 +36,34 @@ void setup()
     Serial.println("init failed");
 }
 
+// set up for serial write message
+String  serial_read;
+int     address;
+uint8_t data[INPUT_SIZE+1];
+
 // Dont put this on the stack:
 uint8_t buf[RH_MESH_MAX_MESSAGE_LEN];
 
 
 void loop()
 { 
-
+  // Write to Serial
   // Send a message to a rf22_mesh_server
   // A route to the destination will be automatically discovered.
-  
+  while(Serial.available()) {
+    //address = Serial.parseInt();
+    Serial.readBytes(data,30);
+    Serial.println();
+    Serial.println("[read]");
+
+    if (manager.sendtoWait(data, sizeof(data), SERVER3_ADDRESS) == RH_ROUTER_ERROR_NONE)
+    {
+        Serial.println("[sent]");
+    }
+    
+  }
+
+  // read incomming message print to serial
   uint8_t len = sizeof(buf);
   uint8_t from;
   if (manager.recvfromAck(buf, &len, &from))
@@ -52,6 +73,7 @@ void loop()
     Serial.print("]: ");
     Serial.println((char*)buf);
   }
+
   
 }
 
