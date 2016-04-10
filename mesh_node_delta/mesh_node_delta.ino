@@ -15,10 +15,10 @@
 #include <SPI.h>
 
 // In this small artifical network of 4 nodes,
-#define CLIENT1_ADDRESS 1
-#define CLIENT2_ADDRESS 2
-#define SERVER3_ADDRESS 3
-#define CLIENT4_ADDRESS 4
+#define ALPHA_ADDRESS 1
+#define BETA_ADDRESS 2
+#define CHARLIE_ADDRESS 3
+#define DELTA_ADDRESS 4
 
 // packet size limit from serial
 #define INPUT_SIZE      30
@@ -27,7 +27,7 @@
 RH_RF22 driver;
 
 // Class to manage message delivery and receipt, using the driver declared above
-RHMesh manager(driver, CLIENT4_ADDRESS);
+RHMesh manager(driver, DELTA_ADDRESS);
 
 void setup() 
 {
@@ -51,12 +51,12 @@ void loop()
   // Send a message to a rf22_mesh_server
   // A route to the destination will be automatically discovered.
   while(Serial.available()) {
-    //address = Serial.parseInt();
+    address = Serial.parseInt();
     Serial.readBytes(data,30);
     Serial.println();
     Serial.println("[read]");
 
-    if (manager.sendtoWait(data, sizeof(data), SERVER3_ADDRESS) == RH_ROUTER_ERROR_NONE)
+    if (manager.sendtoWait(data, sizeof(data), address) == RH_ROUTER_ERROR_NONE)
     {
         Serial.println("[sent]");
     }

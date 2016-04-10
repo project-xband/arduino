@@ -15,17 +15,19 @@
 #include <SPI.h>
 
 // In this small artifical network of 4 nodes,
-#define CLIENT1_ADDRESS 1
-#define CLIENT2_ADDRESS 2
-#define CLIENT3_ADDRESS 3
-#define CLIENT4_ADDRESS 4
+#define ALPHA_ADDRESS 1
+#define BETA_ADDRESS 2
+#define CHARLIE_ADDRESS 3
+#define DELTA_ADDRESS 4
+
+// packet size limit from serial
 #define INPUT_SIZE      30
 
 // Singleton instance of the radio driver
 RH_RF22 driver;
 
 // Class to manage message delivery and receipt, using the driver declared above
-RHMesh manager(driver, CLIENT3_ADDRESS);
+RHMesh manager(driver, CHARLIE_ADDRESS);
 
 void setup() 
 {
@@ -34,32 +36,36 @@ void setup()
     Serial.println("init failed");
 }
 
+// set up for serial write message
 String  serial_read;
 int     address;
 uint8_t data[INPUT_SIZE+1];
+
 // Dont put this on the stack:
 uint8_t buf[RH_MESH_MAX_MESSAGE_LEN];
 
+
 void loop()
 { 
-  uint8_t len = sizeof(buf);
-  uint8_t from;
-  Serial.print("waiting...");
-  Serial.println(data);
+  // Write to Serial
+  // Send a message to a rf22_mesh_server
+  // A route to the destination will be automatically discovered.
   while(Serial.available()) {
     address = Serial.parseInt();
     Serial.readBytes(data,30);
     Serial.println();
     Serial.println("[read]");
-  }
+
+    if (manager.sendtoWait(data, sizeof(data), address) == RH_ROUTER_ERROR_NONE)
+    {
+        Serial.println("[sent]");
+    }
     
-  // Send a message to a rf22_mesh_server
-  // A route to the destination will be automatically discovered.
-  if (manager.sendtoWait(data, sizeof(data), address) == RH_ROUTER_ERROR_NONE)
-  {
-      Serial.println("[sent]");
   }
 
+  // read incomming message print to serial
+  uint8_t len = sizeof(buf);
+  uint8_t from;
   if (manager.recvfromAck(buf, &len, &from))
   {
     Serial.print("[0x");
@@ -67,6 +73,7 @@ void loop()
     Serial.print("]: ");
     Serial.println((char*)buf);
   }
+
   
 }
 
