@@ -56,7 +56,7 @@ void loop()
     Serial.println();
     Serial.println("[read]");
 
-    if (manager.sendtoWait(data, sizeof(data), address) == RH_ROUTER_ERROR_NONE)
+    if (manager.sendtoWait(data, sizeof(data), 255) == RH_ROUTER_ERROR_NONE)
     {
         Serial.println("[sent]");
     }
@@ -65,10 +65,12 @@ void loop()
 
   // read incomming message print to serial
   uint8_t len = sizeof(buf);
-  uint8_t from;
+  uint8_t from; 
+  uint8_t broadcast;
+  broadcast = 255;
   if (manager.recvfromAck(buf, &len, &from))
   {
-    Serial.print("[0x");
+    Serial.print("[");
     Serial.print(from, HEX);
     Serial.print("]: ");
     Serial.println((char*)buf);
