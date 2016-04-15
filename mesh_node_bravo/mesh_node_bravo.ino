@@ -16,18 +16,29 @@
 
 // In this small artifical network of 4 nodes,
 #define ALPHA_ADDRESS 1
-#define BRAVO_ADDRESS 2
+#define BETA_ADDRESS 2
 #define CHARLIE_ADDRESS 3
 #define DELTA_ADDRESS 4
 
-// packet size limit from serial
-#define INPUT_SIZE      30
+#define CLEAR 0
+#define STARTED 1
+#define SYNC_CHARACTER '{'
+#define TERMINATOR_CHARACTER '}'
+
+unsigned char incomingByte;   // for incoming serial data
+unsigned char reliableLength;
+unsigned char commandIndex = 0;
+unsigned char commandState = CLEAR;
+unsigned char reliableMode = false;
+
+#define INPUT_LENGTH 50
+unsigned char commandBuffer[INPUT_LENGTH + 2];
 
 // Singleton instance of the radio driver
 RH_RF22 driver;
 
 // Class to manage message delivery and receipt, using the driver declared above
-RHMesh manager(driver, BRAVO_ADDRESS);
+RHMesh manager(driver, BETA_ADDRESS);
 
 void setup() 
 {
@@ -37,9 +48,7 @@ void setup()
 }
 
 // set up for serial write message
-String  serial_read;
-int     address;
-uint8_t data[INPUT_SIZE+1];
+//uint8_t data[INPUT_LENGTH+1];
 
 // Dont put this on the stack:
 uint8_t buf[RH_MESH_MAX_MESSAGE_LEN];
@@ -50,28 +59,49 @@ void loop()
   // Write to Serial
   // Send a message to a rf22_mesh_server
   // A route to the destination will be automatically discovered.
-  while(Serial.available()) {
-    address = Serial.parseInt();
-    Serial.readBytes(data,30);
-    Serial.println();
-    Serial.println("[read]");
+  while(Serial.available() > 0) {
+     incomingByte = Serial.read();
 
-    if (manager.sendtoWait(data, sizeof(data), address) == RH_ROUTER_ERROR_NONE)
-    {
-        Serial.println("[sent]");
-    }
-    
+     if (CLEAR == commandState) {
+       if (SYNC_CHARACTER == incomingByte) {  // look for start of command sync character
+         commandState = STARTED;
+         continue;
+       }
+     }
+
+     if (STARTED == commandState) {      
+       if (TERMINATOR_CHARACTER == incomingByte) {  // look for end of command terminator character
+         commandBuffer[commandIndex] = 0;  // null terminate the command buffer
+         Serial.println("[found end]");
+         if (manager.sendtoWait(commandBuffer, commandIndex, 255) == RH_ROUTER_ERROR_NONE)
+          {
+//            Serial.println("[sent]");
+          }
+         commandIndex = 0;
+         commandState = CLEAR;
+         return;
+       }
+       else {
+         commandBuffer[commandIndex] = incomingByte;  // store a command character in buffer
+         commandIndex++;
+         if (INPUT_LENGTH < commandIndex) {
+           Serial.println("{overflow}");
+           commandIndex = 0;
+           commandState = CLEAR;
+           return;
+         }
+       }
+     }      
   }
 
   // read incomming message print to serial
   uint8_t len = sizeof(buf);
-  uint8_t from;
+  uint8_t from; 
   if (manager.recvfromAck(buf, &len, &from))
   {
-    Serial.print("[0x");
-    Serial.print(from, HEX);
-    Serial.print("]: ");
-    Serial.println((char*)buf);
+    Serial.print("{");
+    Serial.print((char*)buf);
+    Serial.println("}");
   }
 
   
