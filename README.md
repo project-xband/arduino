@@ -1,11 +1,6 @@
 optionally headless mesh node network
 ==========================
 
-- <0x01> alpha
-- <0x02> beta
-- <0x03> charlie
-- <0x04> delta
-
  Loop:
 ==========================
 listen on serial:
@@ -15,7 +10,7 @@ try sending packet:
 try listening for packet:
 	print to serial
 
-  Steps:
-==========================
-- [ ] Make listening fast
-- [ ] Push onto message queue
+Files:
+===========================
+RadioHead library with update frequency and max_packet_len
+Arduino code for mesh node, broadcasts to every other xband radio
