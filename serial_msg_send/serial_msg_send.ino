@@ -1,6 +1,8 @@
 #include <SPI.h>
 #include <RH_RF22.h>
 
+//#define DEBUG_MODE
+
 #define CLEAR 0
 #define STARTED 1
 #define SYNC_CHARACTER '{'
@@ -130,7 +132,7 @@ FoundClosingFrame:
           {
               pFramedData++;
               
-              switch (*pFramedData++)
+              switch (*pFramedData)
               {
                 case '[':
                   *pUnframedData++ = '{'; 
@@ -155,6 +157,7 @@ FoundClosingFrame:
 void loop()
 {
 
+  int index;
   byte *pPacketData;
   byte packetLength;
   word consumedBytes;
@@ -184,19 +187,30 @@ void loop()
        {
         
          commandBuffer[commandIndex] = incomingByte;  // store a command character in buffer
-         commandBuffer[commandIndex +1] = 0;  // null terminate the command buffer
-//         Serial.println("[found end]");
-//         Serial.println((char*)commandBuffer);
-//         extractPacket(& pPacketData, & packetLength, commandBuffer, commandIndex, & consumedBytes);
-//         rf22.send(pPacketData, packetLength);
-//         rf22.waitPacketSent();
-//         free (pPacketData);
-         
-         rf22.send(commandBuffer, commandIndex +1);
-         rf22.waitPacketSent();
+         commandIndex++;
+         commandBuffer[commandIndex] = 0;  // null terminate the command buffer
+
+#ifdef DEBUG_MODE
          Serial.print("sending: ");
          Serial.print((char*)commandBuffer);
          Serial.println(" ");
+#endif
+
+         extractPacket(& pPacketData, & packetLength, commandBuffer, commandIndex, & consumedBytes);
+         rf22.send(pPacketData, packetLength);
+         rf22.waitPacketSent();
+         free (pPacketData);
+
+#ifdef DEBUG_MODE
+         *(pPacketData + packetLength) = 0;
+         Serial.print("send complete: ");
+         Serial.print((char*)commandBuffer);
+         Serial.println(" ");
+#endif
+
+//         rf22.send(commandBuffer, commandIndex +1);
+//         rf22.waitPacketSent();
+         
          commandIndex = 0;
          commandState = CLEAR;
        }
@@ -211,7 +225,7 @@ void loop()
            commandState = CLEAR;
          }
        }
-     }      
+     }
   }
 
   if (rf22.available())
@@ -223,17 +237,29 @@ void loop()
     // Should be a reply message for us now
     if (rf22.recv(buf, &len))
     {
-      
+
+#ifdef DEBUG_MODE
       buf[len] = '\0';
       Serial.print("=");
       Serial.print((char*)buf);
       Serial.println("=");
-  
-//      framePacket(& pFramedPacketData, & framedPacketLength, buf, len);
-//      *(pFramedPacketData + framedPacketLength) = 0;
-//      Serial.println((const char*)pFramedPacketData);
-//      free (pFramedPacketData);
-      
+#endif
+
+      framePacket(& pFramedPacketData, & framedPacketLength, buf, len);
+
+#ifdef DEBUG_MODE
+      Serial.print("==");
+      *(pFramedPacketData + framedPacketLength) = 0;
+      Serial.print((const char*)pFramedPacketData);
+      Serial.println("==");
+#else
+      for (index =0; index < framedPacketLength; index++)
+      {
+        Serial.write(pFramedPacketData[index]);
+      }
+#endif
+
+      free (pFramedPacketData);
     }
   }
 }
